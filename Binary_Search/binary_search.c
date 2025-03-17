@@ -9,15 +9,14 @@ int binary_search(int array[], int size, int search, int *comparisons) {
     
     while (L <= R) {
         int mid = (L + R) / 2;
+        (*comparisons)++; 
         if (array[mid] == search) {
-            (*comparisons)++;
             return mid;
         }
+        (*comparisons)++;
         if (array[mid] < search) {
-            (*comparisons)++;
             L = mid + 1;
         } else {
-            (*comparisons)++;
             R = mid - 1;
         }
     }
@@ -30,11 +29,10 @@ int binary_search_up(int array[], int size, int search, int *comparisons) {
 
     while (L < R) {
         int mid = L + (R - L) / 2;
+        (*comparisons)++;
         if (array[mid] < search) {
-            (*comparisons)++;
             L = mid + 1;
         } else {
-            (*comparisons)++;    
             R = mid;
         }
     }
