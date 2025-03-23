@@ -4,9 +4,9 @@
 ```c
 #include <stdio.h>
 #include <string.h>
-#include <stdlib.h> // Подключаем для использования qsort
+#include <stdlib.h>
 
-// Определяем структуру для записи телефонного справочника
+// Определяем структуру контакта
 typedef struct {
     char surname[50];
     char name[50];
@@ -14,39 +14,56 @@ typedef struct {
     char address[100];
 } Contact;
 
-// Функция сравнения для сложного ключа (фамилия + имя)
-int compareContacts(const void *a, const void *b) {
-    Contact *contactA = (Contact *)a;
-    Contact *contactB = (Contact *)b;
+// Перечисления для ключа сортировки
+typedef enum {SORT_BY_SURNAME, SORT_BY_NAME, SORT_BY_PHONE} SortKey;
+typedef enum {SORT_ASCENDING, SORT_DESCENDING} SortDirection;
 
-    // Сравниваем по фамилии
-    int surnameComparison = strcmp(contactA->surname, contactB->surname);
-    if (surnameComparison != 0) {
-        return surnameComparison;
+// Глобальные переменные для текущих ключа и направления сортировки
+SortKey currentKey = SORT_BY_SURNAME;
+SortDirection currentDirection = SORT_ASCENDING;
+
+// Функция сравнения для qsort
+int compareContacts(const void *a, const void *b) {
+    const Contact *contactA = (const Contact *)a;
+    const Contact *contactB = (const Contact *)b;
+    int result = 0;
+
+    switch (currentKey) {
+        case SORT_BY_SURNAME: result = strcmp(contactA->surname, contactB->surname); break;
+        case SORT_BY_NAME: result = strcmp(contactA->name, contactB->name); break;
+        case SORT_BY_PHONE: result = strcmp(contactA->phone, contactB->phone); break;
     }
 
-    // Если фамилии равны, сравниваем по имени
-    return strcmp(contactA->name, contactB->name);
+    return (currentDirection == SORT_DESCENDING) ? -result : result;
 }
 
-// Функция для вывода массива записей в виде таблицы
+// Функция сравнения для bsearch
+int searchCompare(const void *key, const void *element) {
+    const char *searchKey = (const char *)key;
+    const Contact *contact = (const Contact *)element;
+
+    // Поиск осуществляется по основному полю сортировки
+    if (currentKey == SORT_BY_SURNAME) {
+        return strcmp(searchKey, contact->surname);
+    } else if (currentKey == SORT_BY_NAME) {
+        return strcmp(searchKey, contact->name);
+    } else {
+        return strcmp(searchKey, contact->phone);
+    }
+}
+
+// Функция печати контактов
 void printContacts(Contact arr[], int n) {
-    // Вывод заголовка таблицы
     printf("+-----------------+-----------------+-----------------+---------------------+\n");
     printf("| %-15s | %-15s | %-15s | %-20s |\n", "Surname", "Name", "Phone", "Address");
     printf("+-----------------+-----------------+-----------------+---------------------+\n");
-
-    // Вывод данных
     for (int i = 0; i < n; i++) {
         printf("| %-15s | %-15s | %-15s | %-20s |\n", arr[i].surname, arr[i].name, arr[i].phone, arr[i].address);
     }
-
-    // Закрываем таблицу
     printf("+-----------------+-----------------+-----------------+---------------------+\n");
 }
 
 int main() {
-    // Инициализация массива записей
     Contact contacts[] = {
         {"Ivanov", "Ivan", "1234567", "Mira str. 10"},
         {"Petrov", "Petr", "7654321", "Lenina str. 5"},
@@ -57,14 +74,42 @@ int main() {
 
     int n = sizeof(contacts) / sizeof(contacts[0]);
 
-    printf("Before sorting:\n");
+    // Выводим оригинальный справочник
+    printf("Original phonebook:\n");
     printContacts(contacts, n);
 
-    // Сортировка массива записей с использованием qsort
+    // Выбор ключа сортировки
+    int sortKey;
+    printf("Choose sorting key (0 - Surname, 1 - Name, 2 - Phone): ");
+    scanf("%d", &sortKey);
+    currentKey = sortKey;
+
+    // Выбор направления сортировки
+    int sortDirection;
+    printf("Choose sorting direction (0 - Ascending, 1 - Descending): ");
+    scanf("%d", &sortDirection);
+    currentDirection = sortDirection;
+
+    // Сортировка массива
     qsort(contacts, n, sizeof(Contact), compareContacts);
-
-    printf("\nAfter sorting:\n");
+    printf("\nSorted phonebook:\n");
     printContacts(contacts, n);
+
+    // Поиск элемента
+    char searchKey[50];
+    printf("\nEnter search key: ");
+    scanf("%s", searchKey);
+
+    Contact *found = (Contact *)bsearch(searchKey, contacts, n, sizeof(Contact), searchCompare);
+
+    if (found) {
+        printf("\nContact found:\n");
+        printf("+-----------------+-----------------+-----------------+---------------------+\n");
+        printf("| %-15s | %-15s | %-15s | %-20s |\n", found->surname, found->name, found->phone, found->address);
+        printf("+-----------------+-----------------+-----------------+---------------------+\n");
+    } else {
+        printf("\nContact not found.\n");
+    }
 
     return 0;
 }
