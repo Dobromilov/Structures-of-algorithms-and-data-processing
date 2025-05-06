@@ -73,7 +73,7 @@ int quadratic_probing_chars(char A[], char table[], int n, int m) {
 // === Красивая печать таблицы символов ===
 void PrintSymbolTableFormatted(const char table[], int size, const string& title) {
     cout << "\n" << title << ":\n";
-    const int cols = 5;
+    const int cols = 5; // Уменьшил количество колонок для лучшей читаемости
 
     for (int row = 0; row < (size + cols - 1) / cols; row++) {
         int start = row * cols;
@@ -126,6 +126,11 @@ void task2() {
 
     cout << "ХЕШИРОВАНИЕ УНИКАЛЬНЫХ СИМВОЛОВ (m = " << m << ") \n";
     
+
+
+    int linear_coll = linear_probing_chars(A, linear_table, n, m);
+    int quad_coll = quadratic_probing_chars(A, quadratic_table, n, m);
+
     PrintSymbolTableFormatted(linear_table, m, "Хеш-таблица (линейные пробы)");
     PrintSymbolTableFormatted(quadratic_table, m, "Хеш-таблица (квадратичные пробы)");
 
